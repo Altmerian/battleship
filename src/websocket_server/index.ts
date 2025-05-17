@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket, RawData } from 'ws';
-import { ClientConnection } from './clientConnection.js';
-import { messageHandler } from '../services/messageHandler.js';
+import { ClientConnection } from './clientConnection';
+import { messageHandler } from '../services/messageHandler';
 
 export const initWebSocketServer = (wsPort: number) => {
   const wss = new WebSocketServer({ port: wsPort });
