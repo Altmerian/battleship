@@ -3,10 +3,9 @@
     "target": "es2023",
     "module": "commonjs",
     "esModuleInterop": true,
-    // Treat files as modules even if it doesn't use import/export
-		"moduleDetection": "force",
-		// Allow JSON modules to be imported
-		"resolveJsonModule": true,
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
 
     "rootDir": "./src",
     "baseUrl": "./src",
@@ -15,14 +14,13 @@
     "strict": true,
     "skipLibCheck": true,
 
-		"allowJs": true,
-    "checkJs": true,
+    "allowJs": true,
+    "checkJs": false,
 
-		// Disallow features that require cross-file awareness
-		"isolatedModules": true,
-    
     "removeComments": true,
+    "sourceMap": true,
+    "noEmit": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts", "tests/**/*"]
+  "exclude": ["node_modules", "**/*.spec.ts", "tests/**/*", "dist", "webpack.config.js"]
 }
