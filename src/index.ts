@@ -4,12 +4,12 @@ import { initWebSocketServer } from "./websocket_server/index";
 const HTTP_PORT = 8181;
 const WS_PORT = 3000;
 
-console.log(`Start static http server on the ${HTTP_PORT} port!`);
+console.log(`Start static http server on port ${HTTP_PORT}`);
 const server = httpServer.listen(HTTP_PORT, () => {
   const wss = initWebSocketServer(WS_PORT);
 
-  const gracefulShutdown = (signal: string) => {
-    console.log(`Received ${signal}. Shutting down servers...`);
+  process.on("exit", (code: number) => {
+    console.log(`Received ${code} code. Shutting down servers...`);
     wss.close((wsErr) => {
       if (wsErr) {
         console.error("Error closing WebSocket server:", wsErr);
@@ -24,10 +24,5 @@ const server = httpServer.listen(HTTP_PORT, () => {
         process.exit(0);
       });
     });
-  };
-
-  // Listen for common termination signals
-  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-  process.on("SIGUSR2", () => gracefulShutdown("SIGUSR2"));
+  });
 });

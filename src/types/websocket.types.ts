@@ -7,13 +7,13 @@ export interface WebSocketMessage {
 export interface WebSocketCommandRequest<T = unknown> {
   type: string;
   data: T;
-  id: 0;
+  id: number;
 }
 
 export interface WebSocketCommandResponse<T = unknown> {
   type: string;
   data: T;
-  id: 0;
+  id: number;
 }
 
 export interface ErrorResponseData {

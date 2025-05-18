@@ -1,10 +1,13 @@
+/* eslint-disable prettier/prettier */
 import { WebSocketServer, WebSocket, RawData } from "ws";
 import { ClientConnection } from "./clientConnection";
-import { messageHandler } from "../services/messageHandler";
+import { MessageHandler } from "../services/messageHandler";
 
 export const initWebSocketServer = (wsPort: number) => {
   const wss = new WebSocketServer({ port: wsPort });
   const clients = new Map<string, ClientConnection>();
+
+  const messageHandler = new MessageHandler(clients);
 
   console.log(`WebSocket server started on port ${wsPort}`);
 
@@ -22,10 +25,11 @@ export const initWebSocketServer = (wsPort: number) => {
     });
 
     ws.on("close", (code, reason) => {
-      clients.delete(client.clientId);
+      clients.delete(client.clientId); 
       console.log(
         `Client ${client.clientId} (PlayerID: ${client.playerId ?? "N/A"}) disconnected. Code: ${code}, Reason: ${reason ? reason.toString() : "N/A"}. Total clients: ${clients.size}`,
       );
+      // TODO: Notify services about client disconnection
     });
 
     ws.on("error", (error) => {
@@ -34,6 +38,7 @@ export const initWebSocketServer = (wsPort: number) => {
         clients.delete(client.clientId);
         console.log(`Client ${client.clientId} removed due to error. Total clients: ${clients.size}`);
       }
+      // TODO: Notify services about client disconnection
     });
   });
 

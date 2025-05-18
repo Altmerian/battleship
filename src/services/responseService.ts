@@ -10,7 +10,7 @@ export class ResponseService {
    * @param id - The id of the message
    */
 
-  public sendToClient<T>(client: ClientConnection, type: string, data: T, id: 0 = 0): void {
+  public sendToClient<T>(client: ClientConnection, type: string, data: T, id: number = 0): void {
     const response: WebSocketCommandResponse<T> = { type, data, id };
     console.log(
       `Sending message to client ${client.clientId} (PlayerID: ${client.playerId ?? "N/A"}):`,
@@ -30,7 +30,7 @@ export class ResponseService {
     clients: Map<string, ClientConnection> | ClientConnection[],
     type: string,
     data: T,
-    id: 0 = 0,
+    id: number = 0,
   ): void {
     const response: WebSocketCommandResponse<T> = { type, data, id };
     const stringifiedResponse = JSON.stringify(response);
@@ -39,7 +39,6 @@ export class ResponseService {
     const clientCollection = clients instanceof Map ? Array.from(clients.values()) : clients;
 
     clientCollection.forEach((client) => {
-      // console.log(`Sending broadcast to client ${client.clientId} (PlayerID: ${client.playerId ?? 'N/A'}):`, stringifiedResponse);
       client.sendRaw(stringifiedResponse);
     });
   }
@@ -51,7 +50,7 @@ export class ResponseService {
    * @param data - The data to send
    * @param id - The id of the message
    */
-  public sendToRoom<T>(roomClients: ClientConnection[], type: string, data: T, id: 0 = 0): void {
+  public sendToRoom<T>(roomClients: ClientConnection[], type: string, data: T, id: number = 0): void {
     const response: WebSocketCommandResponse<T> = { type, data, id };
     const stringifiedResponse = JSON.stringify(response);
     console.log(`Sending message to room (type ${type}, ${roomClients.length} clients):`, stringifiedResponse);
@@ -69,7 +68,7 @@ export class ResponseService {
    * @param originalType - The type of the request that caused the error
    * @param requestId - The id of the message
    */
-  public sendError(client: ClientConnection, errorText: string, originalType?: string, requestId: 0 = 0): void {
+  public sendError(client: ClientConnection, errorText: string, originalType?: string, requestId: number = 0): void {
     const errorData = {
       error: true,
       errorText,
