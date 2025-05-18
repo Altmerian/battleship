@@ -1,11 +1,8 @@
-export interface RoomUser {
-  name: string;
-  index: string;
-}
+import { ClientConnection } from "../websocket_server/clientConnection";
 
-export interface RoomInfo {
-  roomId: string;
-  roomUsers: RoomUser[];
+export interface RoomUser {
+  client: ClientConnection;
+  index: string;
 }
 
 export interface AddUserToRoomRequestData {
@@ -17,6 +14,12 @@ export interface CreateGameResponseData {
   idPlayer: string;
 }
 
-// Actual data stored per room on the server
-// This will evolve as RoomService is implemented.
-export interface RoomData extends RoomInfo {}
+export interface RoomData {
+  roomId: string;
+  roomUsers: RoomUser[];
+}
+
+export interface AvailableRoomInfo {
+  roomId: string;
+  roomUsers: Array<{ index: string }>;
+}

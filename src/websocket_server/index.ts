@@ -25,20 +25,21 @@ export const initWebSocketServer = (wsPort: number) => {
     });
 
     ws.on("close", (code, reason) => {
-      clients.delete(client.clientId); 
       console.log(
-        `Client ${client.clientId} (PlayerID: ${client.playerId ?? "N/A"}) disconnected. Code: ${code}, Reason: ${reason ? reason.toString() : "N/A"}. Total clients: ${clients.size}`,
+        `Client ${client.clientId} (PlayerID: ${client.playerId ?? "N/A"}) connection closing. Code: ${code}, Reason: ${reason ? reason.toString() : "N/A"}`,
       );
-      // TODO: Notify services about client disconnection
+      messageHandler.handleDisconnect(client);
+      clients.delete(client.clientId);
+      console.log(`Client ${client.clientId} fully disconnected. Total clients: ${clients.size}`);
     });
 
     ws.on("error", (error) => {
       console.error(`WebSocket error on client ${client.clientId} (PlayerID: ${client.playerId ?? "N/A"}):`, error);
+      messageHandler.handleDisconnect(client);
       if (clients.has(client.clientId)) {
         clients.delete(client.clientId);
         console.log(`Client ${client.clientId} removed due to error. Total clients: ${clients.size}`);
       }
-      // TODO: Notify services about client disconnection
     });
   });
 

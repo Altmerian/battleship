@@ -2,13 +2,16 @@ import { ClientConnection } from "../websocket_server/clientConnection";
 import { responseService } from "./responseService";
 import { WebSocketCommandRequest, RegRequestData, RegResponseData, WinnerData } from "../types";
 import { PlayerService } from "./playerService";
+import { RoomService } from "./roomService";
 
 export class MessageHandler {
   private playerService: PlayerService;
+  private roomService: RoomService;
   private clients: Map<string, ClientConnection>;
 
   constructor(clients: Map<string, ClientConnection>) {
     this.playerService = new PlayerService();
+    this.roomService = new RoomService();
     this.clients = clients;
   }
 
@@ -77,8 +80,46 @@ export class MessageHandler {
         const winnersList = this.playerService.getWinnerList();
         responseService.broadcast<WinnerData[]>(this.clients, "update_winners", winnersList);
 
+        this.broadcastRoomUpdates();
+
         break;
-      // TODO: Add other cases for create_room, add_user_to_room, add_ships, attack, randomAttack etc.
+
+      case "create_room":
+        if (!client.playerId) {
+          console.error(
+            `Player ${client.clientId} attempting to create room without being registered or name missing.`,
+          );
+          responseService.sendError(
+            client,
+            "Player not registered or player name is missing. Please register first.",
+            "create_room",
+            parsedMessage.id,
+          );
+          break;
+        }
+
+        // Check if player is already in a room
+        const existingRoom = this.roomService.getPlayerRoom(client.playerId);
+        if (existingRoom) {
+          console.warn(
+            `Player ${client.playerId} trying to create a room while already in room ${existingRoom.roomId}.`,
+          );
+          responseService.sendError(
+            client,
+            `You are already in room ${existingRoom.roomId}. Cannot create a new room.`,
+            "create_room",
+            parsedMessage.id,
+          );
+          break;
+        }
+
+        const newRoom = this.roomService.createRoom(client, client.playerId);
+        console.log(`Player ${client.playerId} created room ${newRoom.roomId}. Initiating room update broadcast.`);
+
+        this.broadcastRoomUpdates();
+        break;
+
+      // TODO: Add other cases for add_ships, attack, randomAttack etc.
       default:
         console.warn(`Unknown message type received: ${parsedMessage.type} from client ${client.clientId}`);
         responseService.sendError(
@@ -89,6 +130,26 @@ export class MessageHandler {
         );
         break;
     }
+  }
+
+  public handleDisconnect(client: ClientConnection): void {
+    if (client.playerId) {
+      console.log(`Handling disconnection for player ${client.playerId}`);
+      const { wasPlayerInRoom } = this.roomService.removePlayerFromRooms(client.playerId);
+
+      if (wasPlayerInRoom) {
+        console.log(`Player ${client.playerId} was removed from a room. Broadcasting room updates.`);
+        this.broadcastRoomUpdates();
+      }
+      // TODO: Handle game state if player was in an active game
+    } else {
+      console.log(`Client ${client.clientId} disconnected without being a registered player.`);
+    }
+  }
+
+  private broadcastRoomUpdates(): void {
+    const availableRooms = this.roomService.getAvailableRooms();
+    responseService.broadcast(this.clients, "update_room", availableRooms);
   }
 
   private validateRegData(client: ClientConnection, regData: RegRequestData): boolean {

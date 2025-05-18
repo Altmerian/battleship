@@ -12,7 +12,7 @@ export class ClientConnection {
     this.clientId = crypto.randomUUID();
   }
 
-  send<T>(message: WebSocketCommandResponse<T>): void {
+  send(message: WebSocketCommandResponse): void {
     if (this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     } else {

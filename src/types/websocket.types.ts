@@ -10,9 +10,9 @@ export interface WebSocketCommandRequest<T = unknown> {
   id: number;
 }
 
-export interface WebSocketCommandResponse<T = unknown> {
+export interface WebSocketCommandResponse {
   type: string;
-  data: T;
+  data: string;
   id: number;
 }
 
