@@ -3,31 +3,37 @@ import { responseService } from "./responseService";
 import { WebSocketCommandRequest } from "../types";
 import { PlayerService } from "./playerService";
 import { RoomService } from "./roomService";
+import { GameService } from "./gameService";
 import { ICommandHandler, CommandHandlerDependencies } from "./commandHandlers/commandHandler.interface";
 import { RegistrationHandler } from "./commandHandlers/registrationHandler";
 import { CreateRoomHandler } from "./commandHandlers/createRoomHandler";
+import { AddUserToRoomHandler } from "./commandHandlers/addUserToRoomHandler";
 
 export class MessageHandler {
   private playerService: PlayerService;
   private roomService: RoomService;
+  private gameService: GameService;
   private clients: Map<string, ClientConnection>;
   private commandHandlerDependencies: CommandHandlerDependencies;
   private commandHandlers: Map<string, ICommandHandler<unknown>> = new Map();
 
   constructor(clients: Map<string, ClientConnection>) {
     this.playerService = new PlayerService();
-    this.roomService = new RoomService();
+    this.gameService = new GameService();
+    this.roomService = new RoomService(this.playerService, this.gameService);
     this.clients = clients;
 
     this.commandHandlerDependencies = {
       playerService: this.playerService,
       roomService: this.roomService,
+      gameService: this.gameService,
       responseService: responseService,
       allClients: this.clients,
     };
 
     this.commandHandlers.set("reg", new RegistrationHandler());
     this.commandHandlers.set("create_room", new CreateRoomHandler());
+    this.commandHandlers.set("add_user_to_room", new AddUserToRoomHandler());
   }
 
   /**

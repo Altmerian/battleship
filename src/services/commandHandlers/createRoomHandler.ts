@@ -1,5 +1,6 @@
 import { ClientConnection } from "../../websocket_server/clientConnection";
 import { ICommandHandler, CommandHandlerDependencies } from "./commandHandler.interface";
+import { RoomData } from "../../types/room.types";
 
 export class CreateRoomHandler implements ICommandHandler {
   private broadcastRoomUpdates(dependencies: CommandHandlerDependencies): void {
@@ -22,20 +23,25 @@ export class CreateRoomHandler implements ICommandHandler {
       return;
     }
 
-    const existingRoom = roomService.getPlayerRoom(client.playerId);
-    if (existingRoom) {
-      console.warn(`Player ${client.playerId} trying to create a room while already in room ${existingRoom.roomId}.`);
+    const currentRoomPlayerIsIn = roomService.getPlayerRoom(client.playerId);
+    if (currentRoomPlayerIsIn) {
+      console.warn(
+        `Player ${client.playerId} trying to create a room while already in room ${currentRoomPlayerIsIn.roomId}.`,
+      );
       responseService.sendError(
         client,
-        `You are already in room ${existingRoom.roomId}. Cannot create a new room.`,
+        `You are already in room ${currentRoomPlayerIsIn.roomId}. Cannot create a new room.`,
         "create_room",
         messageId,
       );
       return;
     }
 
-    const newRoom = roomService.createRoom(client, client.playerId);
-    console.log(`Player ${client.playerId} created room ${newRoom.roomId}. Initiating room update broadcast.`);
+    const newEmptyRoom = roomService.createRoom();
+    console.log(`Player ${client.playerId} initiated creation of empty room ${newEmptyRoom.roomId}.`);
+
+    responseService.sendToClient<RoomData>(client, "create_room", newEmptyRoom, messageId);
+    console.log(`Sent direct create_room success response to ${client.playerId} for room ${newEmptyRoom.roomId}`);
 
     this.broadcastRoomUpdates(dependencies);
   }

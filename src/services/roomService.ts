@@ -1,25 +1,29 @@
+/* eslint-disable prettier/prettier */
 import crypto from "crypto";
 import { ClientConnection } from "../websocket_server/clientConnection";
 import { RoomData, RoomUser, AvailableRoomInfo } from "../types/room.types";
+import { PlayerService } from "./playerService";
+import { GameService, InGamePlayerData } from "./gameService";
 
 export class RoomService {
   private rooms: Map<string, RoomData> = new Map();
+  private playerService: PlayerService;
+  private gameService: GameService;
 
-  constructor() {}
+  constructor(playerService: PlayerService, gameService: GameService) {
+    this.playerService = playerService;
+    this.gameService = gameService;
+  }
 
-  public createRoom(playerClient: ClientConnection, playerIndex: string): RoomData {
+  public createRoom(): RoomData {
     const roomId = crypto.randomUUID();
-    const user: RoomUser = {
-      client: playerClient,
-      index: playerIndex,
-    };
     const newRoom: RoomData = {
       roomId,
-      roomUsers: [user],
+      roomUsers: [],
     };
 
     this.rooms.set(roomId, newRoom);
-    console.log(`Room created: ${roomId} by player ${playerIndex}`);
+    console.log(`Empty room created: ${roomId}`);
     return newRoom;
   }
 
@@ -76,5 +80,67 @@ export class RoomService {
       }
     }
     return { updatedRoomId, isRoomRemoved, wasPlayerInRoom };
+  }
+
+  public addUserToRoom(
+    playerClient: ClientConnection,
+    playerIndex: string,
+    roomId: string,
+  ): { room?: RoomData; error?: boolean; errorText?: string; gameReady?: boolean } {
+    const room = this.rooms.get(roomId);
+
+    if (!room) {
+      return { error: true, errorText: "Room not found." };
+    }
+
+    if (room.roomUsers.length >= 2) {
+      return { error: true, errorText: "Room is full." };
+    }
+
+    if (this.getPlayerRoom(playerIndex)) {
+      return { error: true, errorText: "Player already in a room." };
+    }
+
+    const newUser: RoomUser = {
+      client: playerClient,
+      index: playerIndex,
+    };
+    room.roomUsers.push(newUser);
+    console.log(`Player ${playerIndex} added to room ${roomId}`);
+
+    let gameReady = false;
+    if (room.roomUsers.length === 2) {
+      room.roomUsers[0].idPlayer = "0";
+      room.roomUsers[1].idPlayer = "1";
+      room.gameId = crypto.randomUUID();
+      gameReady = true;
+      console.log(
+        `Room ${roomId} is now full. Game ID ${room.gameId} assigned. Players: ${room.roomUsers[0].index} (idPlayer: 0), ${room.roomUsers[1].index} (idPlayer: 1)`,
+      );
+
+      const playersForGame: [InGamePlayerData, InGamePlayerData] = [
+        {
+          client: room.roomUsers[0].client,
+          idPlayer: room.roomUsers[0].idPlayer as string,
+          playerIndex: room.roomUsers[0].index,
+          name: this.playerService.getPlayerByIndex(room.roomUsers[0].index)?.name || "Player 1",
+        },
+        {
+          client: room.roomUsers[1].client,
+          idPlayer: room.roomUsers[1].idPlayer as string,
+          playerIndex: room.roomUsers[1].index,
+          name: this.playerService.getPlayerByIndex(room.roomUsers[1].index)?.name || "Player 2",
+        },
+      ];
+
+      const gameInstance = this.gameService.createGame(room.gameId, playersForGame);
+      if (!gameInstance) {
+        console.error(`Failed to create game instance for room ${room.roomId} with game ID ${room.gameId}`);
+        return { room, error: true, errorText: "Failed to initialize game.", gameReady: false };
+      }
+      console.log(`Game instance ${gameInstance.gameId} created via GameService.`);
+    }
+
+    return { room, gameReady };
   }
 }

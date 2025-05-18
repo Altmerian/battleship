@@ -1,3 +1,5 @@
+import { ClientConnection } from "../websocket_server/clientConnection";
+
 export interface Position {
   x: number;
   y: number;
@@ -59,28 +61,25 @@ export interface Cell {
   x: number;
   y: number;
   status: CellStatus;
-  shipId?: string;
 }
 
 export type GameBoard = Cell[][];
 
-// Represents a player within a game instance on the server
 export interface GamePlayer {
-  idPlayer: string;
-  name: string;
+  idPlayer: string; // Game-specific ID ("0" or "1")
+  client: ClientConnection;
   playerIndex: string;
+  name: string;
   ships: Ship[];
   board: GameBoard;
   shipsPlaced: boolean;
-  isReady?: boolean;
 }
 
-export type GameState = "pending_players" | "placing_ships" | "active" | "finished";
+export type GameState = "placing_ships" | "active" | "finished";
 
 export interface GameInstance {
   gameId: string;
   players: [GamePlayer, GamePlayer];
-  currentPlayerId: string;
+  currentPlayerId: string | null;
   gameState: GameState;
-  winnerId?: string;
 }
