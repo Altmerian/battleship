@@ -31,8 +31,7 @@ export type AttackStatus = "miss" | "killed" | "shot";
 
 export interface AttackRequestData {
   gameId: string;
-  x: number;
-  y: number;
+  position: Position;
   indexPlayer: string;
 }
 
@@ -57,10 +56,25 @@ export interface FinishGameResponseData {
 
 export type CellStatus = "empty" | "ship" | "hit" | "miss" | "sunk_ship_part" | "around_sunk_ship";
 
-export interface Cell {
+export class Cell {
   x: number;
   y: number;
   status: CellStatus;
+
+  constructor(x: number, y: number, status: CellStatus) {
+    this.x = x;
+    this.y = y;
+    this.status = status;
+  }
+
+  isAlreadyAttacked(): boolean {
+    return (
+      this.status === "hit" ||
+      this.status === "miss" ||
+      this.status === "sunk_ship_part" ||
+      this.status === "around_sunk_ship"
+    );
+  }
 }
 
 export type GameBoard = Cell[][];

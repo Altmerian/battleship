@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import crypto from "crypto";
 import { ClientConnection } from "../websocket_server/clientConnection";
 import { RoomData, RoomUser, AvailableRoomInfo } from "../types/room.types";
