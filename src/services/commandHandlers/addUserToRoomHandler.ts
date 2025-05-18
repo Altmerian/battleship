@@ -50,7 +50,6 @@ export class AddUserToRoomHandler implements ICommandHandler<AddUserToRoomReques
   private broadcastRoomUpdates(dependencies: CommandHandlerDependencies): void {
     const availableRooms = dependencies.roomService.getAvailableRooms();
     dependencies.responseService.broadcast(dependencies.allClients, "update_room", availableRooms);
-    console.log("Broadcasted update_room with rooms:", JSON.stringify(availableRooms));
   }
 
   private sendCreateGameResponses(room: RoomData, dependencies: CommandHandlerDependencies): void {

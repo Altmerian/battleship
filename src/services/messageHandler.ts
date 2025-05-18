@@ -8,7 +8,7 @@ import { ICommandHandler, CommandHandlerDependencies } from "./commandHandlers/c
 import { RegistrationHandler } from "./commandHandlers/registrationHandler";
 import { CreateRoomHandler } from "./commandHandlers/createRoomHandler";
 import { AddUserToRoomHandler } from "./commandHandlers/addUserToRoomHandler";
-
+import { AddShipsHandler } from "./commandHandlers/addShipsHandler";
 export class MessageHandler {
   private playerService: PlayerService;
   private roomService: RoomService;
@@ -34,6 +34,7 @@ export class MessageHandler {
     this.commandHandlers.set("reg", new RegistrationHandler());
     this.commandHandlers.set("create_room", new CreateRoomHandler());
     this.commandHandlers.set("add_user_to_room", new AddUserToRoomHandler());
+    this.commandHandlers.set("add_ships", new AddShipsHandler());
   }
 
   /**
