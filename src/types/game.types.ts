@@ -3,7 +3,7 @@ export interface Position {
   y: number;
 }
 
-export type ShipType = 'small' | 'medium' | 'large' | 'huge';
+export type ShipType = "small" | "medium" | "large" | "huge";
 
 export interface Ship {
   position: Position;
@@ -25,7 +25,7 @@ export interface StartGameResponseData {
   currentPlayerIndex: string;
 }
 
-export type AttackStatus = 'miss' | 'killed' | 'shot';
+export type AttackStatus = "miss" | "killed" | "shot";
 
 export interface AttackRequestData {
   gameId: string;
@@ -53,7 +53,7 @@ export interface FinishGameResponseData {
   winPlayer: string;
 }
 
-export type CellStatus = 'empty' | 'ship' | 'hit' | 'miss' | 'sunk_ship_part' | 'around_sunk_ship';
+export type CellStatus = "empty" | "ship" | "hit" | "miss" | "sunk_ship_part" | "around_sunk_ship";
 
 export interface Cell {
   x: number;
@@ -75,7 +75,7 @@ export interface GamePlayer {
   isReady?: boolean;
 }
 
-export type GameState = 'pending_players' | 'placing_ships' | 'active' | 'finished';
+export type GameState = "pending_players" | "placing_ships" | "active" | "finished";
 
 export interface GameInstance {
   gameId: string;
@@ -83,4 +83,4 @@ export interface GameInstance {
   currentPlayerId: string;
   gameState: GameState;
   winnerId?: string;
-} 
+}

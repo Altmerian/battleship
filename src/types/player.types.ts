@@ -1,4 +1,4 @@
-import { ErrorResponseData } from './websocket.types';
+import { ErrorResponseData } from "./websocket.types";
 
 export interface PlayerData {
   name: string;
@@ -20,4 +20,4 @@ export interface RegResponseData extends Partial<ErrorResponseData> {
 export interface WinnerData {
   name: string;
   wins: number;
-} 
+}

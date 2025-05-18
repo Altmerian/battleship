@@ -1,5 +1,5 @@
 import { httpServer } from "./http_server/index.js";
-import { initWebSocketServer } from './websocket_server/index';
+import { initWebSocketServer } from "./websocket_server/index";
 
 const HTTP_PORT = 8181;
 const WS_PORT = 3000;
@@ -12,15 +12,15 @@ const server = httpServer.listen(HTTP_PORT, () => {
     console.log(`Received ${signal}. Shutting down servers...`);
     wss.close((wsErr) => {
       if (wsErr) {
-        console.error('Error closing WebSocket server:', wsErr);
+        console.error("Error closing WebSocket server:", wsErr);
       }
-      console.log('WebSocket server closed.');
+      console.log("WebSocket server closed.");
       server.close((httpErr) => {
         if (httpErr) {
-          console.error('Error closing HTTP server:', httpErr);
+          console.error("Error closing HTTP server:", httpErr);
         }
-        console.log('HTTP server closed.');
-        console.log('All servers closed. Exiting process.');
+        console.log("HTTP server closed.");
+        console.log("All servers closed. Exiting process.");
         process.exit(0);
       });
     });

@@ -69,12 +69,7 @@ export class ResponseService {
    * @param originalType - The type of the request that caused the error
    * @param requestId - The id of the message
    */
-  public sendError(
-    client: ClientConnection,
-    errorText: string,
-    originalType?: string,
-    requestId: 0 = 0,
-  ): void {
+  public sendError(client: ClientConnection, errorText: string, originalType?: string, requestId: 0 = 0): void {
     const errorData = {
       error: true,
       errorText,

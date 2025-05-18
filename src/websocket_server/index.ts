@@ -1,6 +1,6 @@
-import { WebSocketServer, WebSocket, RawData } from 'ws';
-import { ClientConnection } from './clientConnection';
-import { messageHandler } from '../services/messageHandler';
+import { WebSocketServer, WebSocket, RawData } from "ws";
+import { ClientConnection } from "./clientConnection";
+import { messageHandler } from "../services/messageHandler";
 
 export const initWebSocketServer = (wsPort: number) => {
   const wss = new WebSocketServer({ port: wsPort });
@@ -8,12 +8,12 @@ export const initWebSocketServer = (wsPort: number) => {
 
   console.log(`WebSocket server started on port ${wsPort}`);
 
-  wss.on('connection', (ws: WebSocket) => {
+  wss.on("connection", (ws: WebSocket) => {
     const client = new ClientConnection(ws);
     clients.set(client.clientId, client);
     console.log(`New client connected: ${client.clientId}. Total clients: ${clients.size}`);
 
-    ws.on('message', (rawMessage: RawData, isBinary: boolean) => {
+    ws.on("message", (rawMessage: RawData, isBinary: boolean) => {
       if (isBinary) {
         console.log(`Received binary message from client ${client.clientId}, ignoring.`);
         return;
@@ -21,15 +21,15 @@ export const initWebSocketServer = (wsPort: number) => {
       messageHandler.handleMessage(client, rawMessage.toString());
     });
 
-    ws.on('close', (code, reason) => {
+    ws.on("close", (code, reason) => {
       clients.delete(client.clientId);
       console.log(
-        `Client ${client.clientId} (PlayerID: ${client.playerId ?? 'N/A'}) disconnected. Code: ${code}, Reason: ${reason ? reason.toString() : 'N/A'}. Total clients: ${clients.size}`,
+        `Client ${client.clientId} (PlayerID: ${client.playerId ?? "N/A"}) disconnected. Code: ${code}, Reason: ${reason ? reason.toString() : "N/A"}. Total clients: ${clients.size}`,
       );
     });
 
-    ws.on('error', (error) => {
-      console.error(`WebSocket error on client ${client.clientId} (PlayerID: ${client.playerId ?? 'N/A'}):`, error);
+    ws.on("error", (error) => {
+      console.error(`WebSocket error on client ${client.clientId} (PlayerID: ${client.playerId ?? "N/A"}):`, error);
       if (clients.has(client.clientId)) {
         clients.delete(client.clientId);
         console.log(`Client ${client.clientId} removed due to error. Total clients: ${clients.size}`);
@@ -37,9 +37,9 @@ export const initWebSocketServer = (wsPort: number) => {
     });
   });
 
-  wss.on('close', () => {
-    console.log('WebSocket server instance closed.');
+  wss.on("close", () => {
+    console.log("WebSocket server instance closed.");
   });
 
   return wss;
-}; 
+};

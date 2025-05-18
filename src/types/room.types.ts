@@ -19,5 +19,4 @@ export interface CreateGameResponseData {
 
 // Actual data stored per room on the server
 // This will evolve as RoomService is implemented.
-export interface RoomData extends RoomInfo {
-} 
+export interface RoomData extends RoomInfo {}

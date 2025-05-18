@@ -19,4 +19,4 @@ export interface WebSocketCommandResponse<T = unknown> {
 export interface ErrorResponseData {
   error: boolean;
   errorText: string;
-} 
+}
