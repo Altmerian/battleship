@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { WebSocketServer, WebSocket, RawData } from "ws";
 import { ClientConnection } from "./clientConnection";
 import { MessageHandler } from "../services/messageHandler";

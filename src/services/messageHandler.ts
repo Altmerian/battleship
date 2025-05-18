@@ -1,18 +1,33 @@
 import { ClientConnection } from "../websocket_server/clientConnection";
 import { responseService } from "./responseService";
-import { WebSocketCommandRequest, RegRequestData, RegResponseData, WinnerData } from "../types";
+import { WebSocketCommandRequest } from "../types";
 import { PlayerService } from "./playerService";
 import { RoomService } from "./roomService";
+import { ICommandHandler, CommandHandlerDependencies } from "./commandHandlers/commandHandler.interface";
+import { RegistrationHandler } from "./commandHandlers/registrationHandler";
+import { CreateRoomHandler } from "./commandHandlers/createRoomHandler";
 
 export class MessageHandler {
   private playerService: PlayerService;
   private roomService: RoomService;
   private clients: Map<string, ClientConnection>;
+  private commandHandlerDependencies: CommandHandlerDependencies;
+  private commandHandlers: Map<string, ICommandHandler<unknown>> = new Map();
 
   constructor(clients: Map<string, ClientConnection>) {
     this.playerService = new PlayerService();
     this.roomService = new RoomService();
     this.clients = clients;
+
+    this.commandHandlerDependencies = {
+      playerService: this.playerService,
+      roomService: this.roomService,
+      responseService: responseService,
+      allClients: this.clients,
+    };
+
+    this.commandHandlers.set("reg", new RegistrationHandler());
+    this.commandHandlers.set("create_room", new CreateRoomHandler());
   }
 
   /**
@@ -43,92 +58,28 @@ export class MessageHandler {
       return;
     }
 
-    switch (parsedMessage.type) {
-      case "reg":
-        const regData = parsedMessage.data as RegRequestData;
-        if (!this.validateRegData(client, regData)) {
-          responseService.sendToClient<RegResponseData>(
-            client,
-            "reg",
-            { name: "", index: "", error: true, errorText: "Invalid registration data format." },
-            parsedMessage.id,
-          );
-          break;
-        }
+    const handler = this.commandHandlers.get(parsedMessage.type);
 
-        const regResult = this.playerService.registerOrLogin(regData.name, regData.password);
-
-        if (regResult.error || !regResult.player) {
-          responseService.sendToClient<RegResponseData>(
-            client,
-            "reg",
-            { name: regData.name, index: "", error: true, errorText: regResult.errorText || "Registration failed." },
-            parsedMessage.id,
-          );
-          break;
-        }
-
-        client.playerId = regResult.player.index;
-        responseService.sendToClient<RegResponseData>(
-          client,
-          "reg",
-          { name: regResult.player.name, index: regResult.player.index, error: false },
-          parsedMessage.id,
-        );
-        console.log(`Client ${client.clientId} successfully logged in as PlayerID: ${client.playerId}`);
-
-        const winnersList = this.playerService.getWinnerList();
-        responseService.broadcast<WinnerData[]>(this.clients, "update_winners", winnersList);
-
-        this.broadcastRoomUpdates();
-
-        break;
-
-      case "create_room":
-        if (!client.playerId) {
-          console.error(
-            `Player ${client.clientId} attempting to create room without being registered or name missing.`,
-          );
-          responseService.sendError(
-            client,
-            "Player not registered or player name is missing. Please register first.",
-            "create_room",
-            parsedMessage.id,
-          );
-          break;
-        }
-
-        // Check if player is already in a room
-        const existingRoom = this.roomService.getPlayerRoom(client.playerId);
-        if (existingRoom) {
-          console.warn(
-            `Player ${client.playerId} trying to create a room while already in room ${existingRoom.roomId}.`,
-          );
-          responseService.sendError(
-            client,
-            `You are already in room ${existingRoom.roomId}. Cannot create a new room.`,
-            "create_room",
-            parsedMessage.id,
-          );
-          break;
-        }
-
-        const newRoom = this.roomService.createRoom(client, client.playerId);
-        console.log(`Player ${client.playerId} created room ${newRoom.roomId}. Initiating room update broadcast.`);
-
-        this.broadcastRoomUpdates();
-        break;
-
-      // TODO: Add other cases for add_ships, attack, randomAttack etc.
-      default:
-        console.warn(`Unknown message type received: ${parsedMessage.type} from client ${client.clientId}`);
+    if (handler) {
+      try {
+        handler.execute(client, parsedMessage.data, parsedMessage.id, this.commandHandlerDependencies);
+      } catch (executionError) {
+        console.error(`Error executing command '${parsedMessage.type}' for client ${client.clientId}:`, executionError);
         responseService.sendError(
           client,
-          `Unknown message type: ${parsedMessage.type}`,
+          `An error occurred while processing your request for command '${parsedMessage.type}'.`,
           parsedMessage.type,
           parsedMessage.id,
         );
-        break;
+      }
+    } else {
+      console.warn(`Unknown message type received: ${parsedMessage.type} from client ${client.clientId}`);
+      responseService.sendError(
+        client,
+        `Unknown message type: ${parsedMessage.type}`,
+        parsedMessage.type,
+        parsedMessage.id,
+      );
     }
   }
 
@@ -139,24 +90,13 @@ export class MessageHandler {
 
       if (wasPlayerInRoom) {
         console.log(`Player ${client.playerId} was removed from a room. Broadcasting room updates.`);
-        this.broadcastRoomUpdates();
+        const availableRooms = this.roomService.getAvailableRooms();
+        responseService.broadcast(this.clients, "update_room", availableRooms);
+        console.log("Broadcasted update_room due to disconnect, with rooms:", JSON.stringify(availableRooms));
       }
       // TODO: Handle game state if player was in an active game
     } else {
       console.log(`Client ${client.clientId} disconnected without being a registered player.`);
     }
-  }
-
-  private broadcastRoomUpdates(): void {
-    const availableRooms = this.roomService.getAvailableRooms();
-    responseService.broadcast(this.clients, "update_room", availableRooms);
-  }
-
-  private validateRegData(client: ClientConnection, regData: RegRequestData): boolean {
-    if (!regData || typeof regData.name !== "string" || typeof regData.password !== "string") {
-      console.error(`Invalid 'reg' data from client ${client.clientId}:`, regData);
-      return false;
-    }
-    return true;
   }
 }
