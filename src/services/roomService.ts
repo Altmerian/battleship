@@ -142,4 +142,16 @@ export class RoomService {
 
     return { room, gameReady };
   }
+
+  public handleGameFinished(gameId: string): { roomRemoved: boolean; roomId?: string } {
+    for (const [roomId, room] of this.rooms.entries()) {
+      if (room.gameId === gameId) {
+        this.rooms.delete(roomId);
+        console.log(`Game ${gameId} finished. Room ${roomId} has been removed.`);
+        return { roomRemoved: true, roomId };
+      }
+    }
+    console.warn(`handleGameFinished: Could not find room associated with finished game ID ${gameId}`);
+    return { roomRemoved: false };
+  }
 }

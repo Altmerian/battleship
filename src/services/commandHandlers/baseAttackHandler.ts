@@ -79,11 +79,29 @@ export class BaseAttackHandler {
 
     if (result.gameOver) {
       if (result.winnerId) {
+        const winningGamePlayer = game.players.find((p) => p.idPlayer === result.winnerId);
+        if (winningGamePlayer && winningGamePlayer.playerIndex) {
+          dependencies.playerService.updateWins(winningGamePlayer.playerIndex);
+        } else {
+          console.error(`Could not find playerIndex for winnerId ${result.winnerId} in game ${gameId} to update wins.`);
+        }
+
         console.log(`Game ${gameId} finished (from ${commandTypeForError}). Winner: ${result.winnerId}.`);
         const finishData: FinishGameResponseData = { winPlayer: result.winnerId };
         game.players.forEach((playerInGame) => {
           responseService.sendToClient(playerInGame.client, "finish", finishData, 0);
         });
+
+        const winnersList = dependencies.playerService.getWinnerList();
+        responseService.broadcast(dependencies.allClients, "update_winners", winnersList);
+
+        gameService.removeGame(gameId);
+
+        const roomCleanupResult = dependencies.roomService.handleGameFinished(gameId);
+        if (roomCleanupResult.roomRemoved) {
+          const availableRooms = dependencies.roomService.getAvailableRooms();
+          responseService.broadcast(dependencies.allClients, "update_room", availableRooms);
+        }
       }
     } else {
       if (result.currentPlayerId) {

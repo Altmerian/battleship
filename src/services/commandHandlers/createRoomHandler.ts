@@ -1,6 +1,5 @@
 import { ClientConnection } from "../../websocket_server/clientConnection";
 import { ICommandHandler, CommandHandlerDependencies } from "./commandHandler.interface";
-import { RoomData } from "../../types/room.types";
 
 export class CreateRoomHandler implements ICommandHandler {
   private broadcastRoomUpdates(dependencies: CommandHandlerDependencies): void {

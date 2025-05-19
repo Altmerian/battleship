@@ -247,41 +247,43 @@ export class GameService {
 
         this.markAroundSunkShip(opponent.board, hitShip, cellsAroundSunkShip);
 
-        console.log(
-          `Game ${gameId}: Player ${attackingPlayerId} KILLED ship type ${hitShip.type} at (${x},${y}). Player ${attackingPlayerId} shoots again.`,
-        );
+        // Check for win condition
+        const allOpponentShipsSunk = opponent.ships.every((ship) => ship.isSunk);
 
-        const allOpponentShipsSunk = opponent.ships.every((s) => s.isSunk);
         if (allOpponentShipsSunk) {
           game.gameState = "finished";
-          console.log(`Game ${gameId}: All ships of player ${opponent.name} sunk. Player ${attacker.name} WINS!`);
+          console.log(
+            `Game ${gameId}: Player ${attackingPlayerId} KILLED ship at (${x},${y}). ALL SHIPS SUNK. Player ${attackingPlayerId} WINS!`,
+          );
           return {
             status: "killed",
             position: position,
-            shipKilled: { ship: hitShip, cellsAround: cellsAroundSunkShip },
             currentPlayerId: attackingPlayerId,
+            shipKilled: { ship: hitShip, cellsAround: cellsAroundSunkShip },
             gameOver: true,
             winnerId: attackingPlayerId,
           };
         }
 
-        game.currentPlayerId = attackingPlayerId;
+        console.log(
+          `Game ${gameId}: Player ${attackingPlayerId} KILLED ship at (${x},${y}). Next turn: ${attackingPlayerId} (shot again)`,
+        );
         return {
           status: "killed",
           position: position,
-          shipKilled: { ship: hitShip, cellsAround: cellsAroundSunkShip },
           currentPlayerId: attackingPlayerId,
+          shipKilled: { ship: hitShip, cellsAround: cellsAroundSunkShip },
         };
       } else {
         // SHIP HIT, NOT KILLED
         console.log(
-          `Game ${gameId}: Player ${attackingPlayerId} HIT ship at (${x},${y}). Player ${attackingPlayerId} shoots again.`,
+          `Game ${gameId}: Player ${attackingPlayerId} HIT ship at (${x},${y}). Next turn: ${attackingPlayerId} (shot again)`,
         );
-        game.currentPlayerId = attackingPlayerId; // Attacker shoots again
         return { status: "hit", position: position, currentPlayerId: attackingPlayerId };
       }
     }
-    return { error: "Unknown cell status encountered.", position: position, currentPlayerId: game.currentPlayerId };
+
+    return { error: "Internal server error: Unexpected cell status.", position, currentPlayerId: game.currentPlayerId };
   }
 
   private markAroundSunkShip(board: GameBoard, sunkShip: Ship, cellsMarked: { x: number; y: number }[]): void {
@@ -356,5 +358,15 @@ export class GameService {
       `Game ${gameId}: Player ${attackingPlayerId} performing random attack at (${randomCell.x},${randomCell.y}).`,
     );
     return this.handleAttack(gameId, attackingPlayerId, { x: randomCell.x, y: randomCell.y });
+  }
+
+  public removeGame(gameId: string): boolean {
+    if (this.activeGames.has(gameId)) {
+      this.activeGames.delete(gameId);
+      console.log(`Game ${gameId} removed from active games.`);
+      return true;
+    }
+    console.warn(`Attempted to remove non-existent game: ${gameId}`);
+    return false;
   }
 }
