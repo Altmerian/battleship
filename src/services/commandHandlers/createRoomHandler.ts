@@ -35,8 +35,24 @@ export class CreateRoomHandler implements ICommandHandler {
       return;
     }
 
-    const newEmptyRoom = roomService.createRoom();
-    console.log(`Player ${client.playerId} initiated creation of empty room ${newEmptyRoom.roomId}.`);
+    const newRoom = roomService.createRoom();
+    console.log(`Player ${client.playerId} created new room ${newRoom.roomId}.`);
+
+    const addUserResult = roomService.addUserToRoom(client, client.playerId, newRoom.roomId);
+
+    if (addUserResult.error || !addUserResult.room) {
+      console.error(
+        `Failed to automatically add creator ${client.playerId} to their new room ${newRoom.roomId}: ${addUserResult.errorText}`,
+      );
+      responseService.sendError(
+        client,
+        addUserResult.errorText || "Failed to join the room you created.",
+        "create_room",
+        messageId,
+      );
+    } else {
+      console.log(`Creator ${client.playerId} automatically added to room ${newRoom.roomId}.`);
+    }
 
     this.broadcastRoomUpdates(dependencies);
   }

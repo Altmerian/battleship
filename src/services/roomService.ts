@@ -34,6 +34,7 @@ export class RoomService {
           roomId: room.roomId,
           roomUsers: room.roomUsers.map((user) => ({
             index: user.index,
+            name: user.name,
           })),
         });
       }
@@ -96,13 +97,12 @@ export class RoomService {
       return { error: true, errorText: "Room is full." };
     }
 
-    if (this.getPlayerRoom(playerIndex)) {
-      return { error: true, errorText: "Player already in a room." };
-    }
+    const playerDetails = this.playerService.getPlayerByIndex(playerIndex);
 
     const newUser: RoomUser = {
       client: playerClient,
       index: playerIndex,
+      name: playerDetails?.name || "Unknown Player",
     };
     room.roomUsers.push(newUser);
     console.log(`Player ${playerIndex} added to room ${roomId}`);
