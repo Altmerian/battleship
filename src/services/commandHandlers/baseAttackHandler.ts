@@ -50,7 +50,7 @@ export class BaseAttackHandler {
 
     const attackResponseData: AttackResponseData = {
       position: result.position,
-      currentPlayer: result.currentPlayerId ?? "",
+      currentPlayer: attackingPlayerId,
       status: responseAttackStatus,
     };
 
@@ -68,7 +68,7 @@ export class BaseAttackHandler {
       result.shipKilled.cellsAround.forEach((cellPos) => {
         const aroundAttackData: AttackResponseData = {
           position: cellPos,
-          currentPlayer: result.currentPlayerId ?? "",
+          currentPlayer: attackingPlayerId,
           status: "miss",
         };
         game.players.forEach((playerInGame) => {

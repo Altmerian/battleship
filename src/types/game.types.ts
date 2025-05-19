@@ -31,13 +31,14 @@ export type AttackStatus = "miss" | "killed" | "shot";
 
 export interface AttackRequestData {
   gameId: string;
-  position: Position;
+  x: number;
+  y: number;
   indexPlayer: string;
 }
 
 export interface AttackResponseData {
   position: Position;
-  currentPlayer: string;
+  currentPlayer: string; // game-specific ID of the player who sent the attack message
   status: AttackStatus;
 }
 

@@ -39,9 +39,6 @@ export class CreateRoomHandler implements ICommandHandler {
     const newEmptyRoom = roomService.createRoom();
     console.log(`Player ${client.playerId} initiated creation of empty room ${newEmptyRoom.roomId}.`);
 
-    responseService.sendToClient<RoomData>(client, "create_room", newEmptyRoom, messageId);
-    console.log(`Sent direct create_room success response to ${client.playerId} for room ${newEmptyRoom.roomId}`);
-
     this.broadcastRoomUpdates(dependencies);
   }
 }
