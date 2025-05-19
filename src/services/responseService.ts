@@ -13,7 +13,7 @@ export class ResponseService {
     const stringifiedData = JSON.stringify(dataObj);
     const response: WebSocketCommandResponse = { type, data: stringifiedData, id };
     console.log(
-      `Sending message to client ${client.clientId} (PlayerID: ${client.playerId ?? "N/A"}): Type: ${response.type}, ID: ${response.id}, Data: ${response.data}`,
+      `\x1b[32m-> Sending message to client ${client.clientId} (PlayerID: ${client.playerId ?? "N/A"}): Type: \x1b[36m${response.type}\x1b[0m\x1b[32m, ID: ${response.id}, Data: ${response.data}\x1b[0m`,
     );
     client.send(response);
   }
@@ -34,7 +34,9 @@ export class ResponseService {
     const stringifiedData = JSON.stringify(dataObj);
     const response: WebSocketCommandResponse = { type, data: stringifiedData, id };
 
-    console.log(`Broadcasting message type ${type}: ID: ${id}, Data: ${stringifiedData}`);
+    console.log(
+      `\x1b[32m-> Broadcasting message type \x1b[36m${type}\x1b[0m\x1b[32m: ID: ${id}, Data: ${stringifiedData}\x1b[0m`,
+    );
 
     const clientCollection = clients instanceof Map ? Array.from(clients.values()) : clients;
 
@@ -54,7 +56,7 @@ export class ResponseService {
     const stringifiedData = JSON.stringify(dataObj);
     const response: WebSocketCommandResponse = { type, data: stringifiedData, id };
     console.log(
-      `Sending message to room (type ${type}, ${roomClients.length} clients): ID: ${id}, Data: ${stringifiedData}`,
+      `\x1b[32m-> Sending message to room (type \x1b[36m${type}\x1b[0m\x1b[32m, ${roomClients.length} clients): ID: ${id}, Data: ${stringifiedData}\x1b[0m`,
     );
 
     roomClients.forEach((client) => {

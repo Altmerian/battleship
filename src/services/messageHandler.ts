@@ -60,7 +60,7 @@ export class MessageHandler {
       }
       parsedMessage = rawObject as WebSocketCommandRequest<unknown>;
       console.log(
-        `Received command from client ${client.clientId} (PlayerID: ${client.playerId ?? "N/A"}): Type: ${parsedMessage.type}, ID: ${parsedMessage.id}, Data: ${JSON.stringify(parsedMessage.data)}`,
+        `\x1b[34m<- Received command from client ${client.clientId} (PlayerID: ${client.playerId ?? "N/A"}): Type: \x1b[36m${parsedMessage.type}\x1b[0m\x1b[34m, ID: ${parsedMessage.id}, Data: ${JSON.stringify(parsedMessage.data)}\x1b[0m`,
       );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Invalid message format.";
